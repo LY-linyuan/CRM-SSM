@@ -28,6 +28,8 @@
 
     <!-- spring mvc 扫描包下的controller -->
     <context:component-scan base-package="com.bjpowernode.crm.web.controller"/>
+    <context:component-scan base-package="com.bjpowernode.crm.settings.web.controller"/>
+    <context:component-scan base-package="com.bjpowernode.crm.workbench.controller"/>
 
 
     <!-- 配置注解驱动 -->
@@ -41,6 +43,20 @@
         <property name="suffix" value=".jsp"/>
     </bean>
 
+    
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <!--配置拦截请求-->
+            <mvc:mapping path="/settings/**"/>
+            <mvc:mapping path="/workbench/**"/>
+            <!--排除拦截的请求 排除拦截的优先级高-->
+            <mvc:exclude-mapping path="/settings/qx/user/toLogin.do"/>
+            <mvc:exclude-mapping path="/settings/qx/user/login.do"/>
+            <!--拦截器类-->
+            <bean class="com.bjpowernode.crm.web.interceptor.LoginInterceptor" />
+        </mvc:interceptor>
+    </mvc:interceptors>
+    
 
     <!-- 配置文件上传解析器 id:必须是multipartResolver-->
     <!--<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
