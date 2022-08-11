@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author 临渊
@@ -67,5 +69,27 @@ public class ActivityController {
             returnObject.setMessage("当前系统繁忙, 请稍后再试");
         }
         return returnObject;
+    }
+
+
+    @RequestMapping("/workbench/activity/queryActivityByConditionForPage.do")
+    @ResponseBody
+    public Object queryActivityByConditionForPage(String name, String owner, String startDate, String endDate,
+                                                  int pageNo, int pageSize) {
+        // 封装参数
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("name", name);
+        map.put("owner", owner);
+        map.put("startDate", startDate);
+        map.put("endDate", endDate);
+        map.put("pageNo", (pageNo - 1) * pageSize);
+        map.put("pageSize", pageSize);
+        List<Activity> activityList = activityService.queryActivityByConditionForPage(map);
+        int totalRows = activityService.queryCountOfActivityCondition(map);
+        // 根据查询结果生成响应信息
+        Map<String, Object> retMap = new HashMap<String, Object>();
+        retMap.put("activityList", activityList);
+        retMap.put("totalRows", totalRows);
+        return retMap;
     }
 }
