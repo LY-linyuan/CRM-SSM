@@ -79,6 +79,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 						// 刷新市场活动 显示第一页数据
 						// 重置表单
 						$("#createActivityForm").get(0).reset();
+						queryActivityByConditionForPage(1, $("#demo_pag1").bs_pagination("getOption", "rowsPerPage"));
 					} else {
 						// 提示信息
 						alert(data.message);
