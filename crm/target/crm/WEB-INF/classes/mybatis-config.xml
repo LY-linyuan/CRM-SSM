@@ -12,11 +12,13 @@
 
     <typeAliases>
         <package name="com.bjpowernode.crm.settings.domain"/>
+        <package name="com.bjpowernode.crm.workbench.domain"/>
     </typeAliases>
 
 
     <mappers>
         <package name="com.bjpowernode.crm.settings.mapper"/>
+        <package name="com.bjpowernode.crm.workbench.mapper"/>
     </mappers>
 
 

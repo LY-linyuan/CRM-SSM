@@ -1,25 +1,108 @@
+<%@page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%
+String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath()+"/";
+%>
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+	<base href="<%=basePath%>">
+<link href="jquery/bootstrap_3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
+<link rel="stylesheet" href="jquery/bootstrap-datetimepicker-master/css/bootstrap-datetimepicker.min.css">
 
-<link href="../../jquery/bootstrap_3.3.0/css/bootstrap.min.css" type="text/css" rel="stylesheet" />
-<link href="../../jquery/bootstrap-datetimepicker-master/css/bootstrap-datetimepicker.min.css" type="text/css" rel="stylesheet" />
-
-<script type="text/javascript" src="../../jquery/jquery-1.11.1-min.js"></script>
-<script type="text/javascript" src="../../jquery/bootstrap_3.3.0/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="../../jquery/bootstrap-datetimepicker-master/js/bootstrap-datetimepicker.js"></script>
-<script type="text/javascript" src="../../jquery/bootstrap-datetimepicker-master/locale/bootstrap-datetimepicker.zh-CN.js"></script>
+<script type="text/javascript" src="jquery/jquery-1.11.1-min.js"></script>
+<script type="text/javascript" src="jquery/bootstrap_3.3.0/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="jquery/bootstrap-datetimepicker-master/js/bootstrap-datetimepicker.js" ></script>
+<script type="text/javascript" src="jquery/bootstrap-datetimepicker-master/locale/bootstrap-datetimepicker.zh-CN.js" ></script>
 
 <script type="text/javascript">
 
 	$(function(){
-		
-		
+		// 给创建添加单击事件
+		$("#createActivityBtn").click(function () {
+			// 弹出创建模态窗口
+			// 这里可以初始化
+			$("#createActivityModal").modal("show");
+		});
+		// 给保存按钮添加单击事件
+		$("#saveCreateActivityBtn").click(function () {
+			var owner = $("#create-marketActivityOwner").val();
+			var name = $.trim($("#create-marketActivityName").val());
+			var startDate = $("#create-startDate").val();
+			var endDate = $("#create-endDate").val();
+			var cost = $("#create-cost").val();
+			var description = $("#create-description").val();
+			// 表单验证
+			if(owner == null) {
+				alert("所有者不能为空");
+				return;
+			}
+			if(name == "") {
+				alert("名称不能为空");
+				return;
+			}
+			if (startDate != null && endDate != null) {
+				if (endDate < startDate) {
+					alert("结束日期不能比开始日期小");
+					return;
+				}
+			}
+			/*
+			    正则表达式 :  ^(([1-9]\d*)|0)$ 非负整数
+			 */
+			var regExp = /^(([1-9]\d*)|0)$/;
+			if (!regExp.test(cost)) {
+				alert("成本只能为非负整数");
+				return;
+			}
+			// 发送请求
+			$.ajax({
+				url: 'workbench/activity/saveCreateActivity.do',
+				data: {
+					owner: owner,
+					name: name,
+					startDate: startDate,
+					endDate: endDate,
+					cost: cost,
+					description: description
+				},
+				type: 'post',
+				dataType: 'json',
+				success: function (data) {
+					if (data.code == '1') {
+						// 关闭模态窗口
+						$("#createActivityModal").modal("hide");
+						// 刷新市场活动 显示第一页数据
+						// 重置表单
+						$("#createActivityForm").get(0).reset();
+					} else {
+						// 提示信息
+						alert(data.message);
+						// 模态窗口不关闭
+						$("#createActivityModal").modal("show");  // 可以不写
+					}
+
+				}
+			});
+
+		});
+
+		// 当容器加载完成后  对容器调用工具函数
+		// $("input[name='mudate']").datetimepicker({
+		$(".mydate").datetimepicker({
+			language: 'zh-CN', // 语言
+			format: 'yyyy-mm-dd', // 格式
+			minView: 'month', // 可以选择的最小视图
+			initData: new Date(), // 初始化显示的时间
+			autoclose: true, // 选址日期之后是否自动关闭  默认false
+			todayBtn: true, // 时候显示'今天' 按钮 默认false
+			clearBtn: true // 设置是否显示'清空'按钮 默认false
+		});
 		
 	});
 	
 </script>
+	<title></title>
 </head>
 <body>
 
@@ -35,15 +118,19 @@
 				</div>
 				<div class="modal-body">
 				
-					<form class="form-horizontal" role="form">
+					<form class="form-horizontal" id="createActivityForm" role="form">
 					
 						<div class="form-group">
 							<label for="create-marketActivityOwner" class="col-sm-2 control-label">所有者<span style="font-size: 15px; color: red;">*</span></label>
 							<div class="col-sm-10" style="width: 300px;">
 								<select class="form-control" id="create-marketActivityOwner">
-								  <option>zhangsan</option>
+									<option></option>
+									<c:forEach items="${userList}" var="user">
+									  <option value="${user.id}">${user.name}</option>
+								  </c:forEach>
+									<%--<option>zhangsan</option>
 								  <option>lisi</option>
-								  <option>wangwu</option>
+								  <option>wangwu</option>--%>
 								</select>
 							</div>
                             <label for="create-marketActivityName" class="col-sm-2 control-label">名称<span style="font-size: 15px; color: red;">*</span></label>
@@ -55,11 +142,11 @@
 						<div class="form-group">
 							<label for="create-startTime" class="col-sm-2 control-label">开始日期</label>
 							<div class="col-sm-10" style="width: 300px;">
-								<input type="text" class="form-control" id="create-startTime">
+								<input type="text" class="form-control mydate" id="create-startDate" readonly>
 							</div>
 							<label for="create-endTime" class="col-sm-2 control-label">结束日期</label>
 							<div class="col-sm-10" style="width: 300px;">
-								<input type="text" class="form-control" id="create-endTime">
+								<input type="text" class="form-control mydate" id="create-endDate" readonly>
 							</div>
 						</div>
                         <div class="form-group">
@@ -72,7 +159,7 @@
 						<div class="form-group">
 							<label for="create-describe" class="col-sm-2 control-label">描述</label>
 							<div class="col-sm-10" style="width: 81%;">
-								<textarea class="form-control" rows="3" id="create-describe"></textarea>
+								<textarea class="form-control" rows="3" id="create-description"></textarea>
 							</div>
 						</div>
 						
@@ -81,7 +168,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-					<button type="button" class="btn btn-primary" data-dismiss="modal">保存</button>
+					<button type="button" class="btn btn-primary" id="saveCreateActivityBtn">保存</button>
 				</div>
 			</div>
 		</div>
@@ -105,9 +192,13 @@
 							<label for="edit-marketActivityOwner" class="col-sm-2 control-label">所有者<span style="font-size: 15px; color: red;">*</span></label>
 							<div class="col-sm-10" style="width: 300px;">
 								<select class="form-control" id="edit-marketActivityOwner">
-								  <option>zhangsan</option>
+									<option></option>
+									<c:forEach items="${userList}" var="user">
+										<option value="${user.id}">${user.name}</option>
+									</c:forEach>
+									<%--<option>zhangsan</option>
 								  <option>lisi</option>
-								  <option>wangwu</option>
+								  <option>wangwu</option>--%>
 								</select>
 							</div>
                             <label for="edit-marketActivityName" class="col-sm-2 control-label">名称<span style="font-size: 15px; color: red;">*</span></label>
@@ -119,11 +210,11 @@
 						<div class="form-group">
 							<label for="edit-startTime" class="col-sm-2 control-label">开始日期</label>
 							<div class="col-sm-10" style="width: 300px;">
-								<input type="text" class="form-control" id="edit-startTime" value="2020-10-10">
+								<input type="text" class="form-control mydate" id="edit-startTime" value="2020-10-10" readonly>
 							</div>
 							<label for="edit-endTime" class="col-sm-2 control-label">结束日期</label>
 							<div class="col-sm-10" style="width: 300px;">
-								<input type="text" class="form-control" id="edit-endTime" value="2020-10-20">
+								<input type="text" class="form-control mydate" id="edit-endTime" value="2020-10-20" readonly>
 							</div>
 						</div>
 						
@@ -238,7 +329,7 @@
 			</div>
 			<div class="btn-toolbar" role="toolbar" style="background-color: #F7F7F7; height: 50px; position: relative;top: 5px;">
 				<div class="btn-group" style="position: relative; top: 18%;">
-				  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createActivityModal"><span class="glyphicon glyphicon-plus"></span> 创建</button>
+				  <button type="button" class="btn btn-primary" id="createActivityBtn"><span class="glyphicon glyphicon-plus"></span> 创建</button>
 				  <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal"><span class="glyphicon glyphicon-pencil"></span> 修改</button>
 				  <button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span> 删除</button>
 				</div>
