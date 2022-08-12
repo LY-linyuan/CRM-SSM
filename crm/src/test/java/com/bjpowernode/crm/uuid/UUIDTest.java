@@ -1,4 +1,4 @@
-package com.bjpowernode.crm;
+package com.bjpowernode.crm.uuid;
 
 import org.junit.Test;
 

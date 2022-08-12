@@ -3,22 +3,28 @@ package com.bjpowernode.crm.workbench.controller;
 import com.bjpowernode.crm.commons.contants.Contants;
 import com.bjpowernode.crm.commons.domain.ReturnObject;
 import com.bjpowernode.crm.commons.utils.DateUtils;
+import com.bjpowernode.crm.commons.utils.HSSFUtils;
 import com.bjpowernode.crm.commons.utils.UUIDUtils;
 import com.bjpowernode.crm.settings.domain.User;
 import com.bjpowernode.crm.settings.service.UserService;
 import com.bjpowernode.crm.workbench.domain.Activity;
 import com.bjpowernode.crm.workbench.service.ActivityService;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 /**
  * @Author 临渊
@@ -142,4 +148,220 @@ public class ActivityController {
         }
         return returnObject;
     }
+
+
+    @RequestMapping("/workbench/activity/fileDownload.do")
+    public void fileDownload(HttpServletResponse response) throws IOException {
+        // 设置响应类型
+        response.setContentType("application/octet-stream;charset=UTF-8");
+        OutputStream out = response.getOutputStream();
+        // 可以设置响应头信息, 是浏览器接收到响应信息之后, 直接激活文件下载 即使能打开也不打开
+        response.addHeader("Content-Disposition", "attachment;filename=myStudentList.xsl");
+        // 读取excel文件(InputStream) 输出到浏览器(OutputStream)
+        InputStream in = new FileInputStream("C:/programme/java/实战项目/CRM-SSM/crm-project/crm/src/test/java/com/bjpowernode/crm/poi/serverDir/studentList.xls");
+        byte[] buff = new byte[256];
+        int len = 0;
+        while ((len = in.read(buff)) != -1) {
+            out.write(buff);
+        }
+        in.close();
+        out.close();
+    }
+
+
+    @RequestMapping("/workbench/activity/exportAllActivities.do")
+    public void exportAllActivities(HttpServletResponse response) throws Exception {
+        // 调用service方法查询所有市场活动
+        List<Activity> activityList = activityService.queryAllActivities();
+        // 创建excel文件 并把activityList写入到excel文件当中
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet("市场活动列表");
+        HSSFRow row = sheet.createRow(0);
+        HSSFCell cell = row.createCell(0);
+        cell.setCellValue("ID");
+        cell = row.createCell(1);
+        cell.setCellValue("所有者");
+        cell = row.createCell(2);
+        cell.setCellValue("名称");
+        cell = row.createCell(3);
+        cell.setCellValue("开始日期");
+        cell = row.createCell(4);
+        cell.setCellValue("结束日期");
+        cell = row.createCell(5);
+        cell.setCellValue("成本");
+        cell = row.createCell(6);
+        cell.setCellValue("描述");
+        cell = row.createCell(7);
+        cell.setCellValue("创建时间");
+        cell = row.createCell(8);
+        cell.setCellValue("创建者");
+        cell = row.createCell(9);
+        cell.setCellValue("修改时间");
+        cell = row.createCell(10);
+        cell.setCellValue("修改者");
+
+        // 遍历市场获取 创建HSSFRow对象生成错在数据行
+        if (activityList != null && activityList.size() > 0) {
+            for (int i = 0 ; i < activityList.toArray().length ; i++) {
+                Activity activity = activityList.get(i);
+                row = sheet.createRow(i + 1);
+                cell = row.createCell(0);
+                cell.setCellValue(activity.getId());
+                cell = row.createCell(1);
+                cell.setCellValue(activity.getOwner());
+                cell = row.createCell(2);
+                cell.setCellValue(activity.getName());
+                cell = row.createCell(3);
+                cell.setCellValue(activity.getStartDate());
+                cell = row.createCell(4);
+                cell.setCellValue(activity.getEndDate());
+                cell = row.createCell(5);
+                cell.setCellValue(activity.getCost());
+                cell = row.createCell(6);
+                cell.setCellValue(activity.getDescription());
+                cell = row.createCell(7);
+                cell.setCellValue(activity.getCreateTime());
+                cell = row.createCell(8);
+                cell.setCellValue(activity.getCreateBy());
+                cell = row.createCell(9);
+                cell.setCellValue(activity.getEditTime());
+                cell = row.createCell(10);
+                cell.setCellValue(activity.getEditBy());
+            }
+        }
+        /*// 根据workbook对象生成excel对象
+        OutputStream os = new FileOutputStream("C:/programme/java/实战项目/CRM-SSM/crm-project/crm/src/main/java/com/bjpowernode/crm/workbench/excel/activityList.xls");
+        workbook.write(os);
+        workbook.close();
+        os.close();
+        // 把生成的文excel文件下载到客户端
+        response.setContentType("application/octet-stream;charset=UTF-8");
+        response.addHeader("Content-Disposition", "attachment;filename=activityList.xsl");
+        OutputStream out = response.getOutputStream();
+        InputStream in = new FileInputStream("C:/programme/java/实战项目/CRM-SSM/crm-project/crm/src/main/java/com/bjpowernode/crm/workbench/excel/activityList.xls");
+        byte[] buff = new byte[256];
+        int len = 0;
+        while ((len = in.read(buff)) != -1) {
+            out.write(buff);
+        }
+        in.close();
+        out.close();*/
+
+
+        // 根据workbook对象生成excel对象
+        /*OutputStream os = new FileOutputStream("C:/programme/java/实战项目/CRM-SSM/crm-project/crm/src/main/java/com/bjpowernode/crm/workbench/excel/activityList.xls");
+        workbook.write(os);
+        workbook.close();
+        os.close();*/
+        // 把生成的文excel文件下载到客户端
+        response.setContentType("application/octet-stream;charset=UTF-8");
+        response.addHeader("Content-Disposition", "attachment;filename=activityList.xsl");
+        OutputStream out = response.getOutputStream();
+        /*InputStream in = new FileInputStream("C:/programme/java/实战项目/CRM-SSM/crm-project/crm/src/main/java/com/bjpowernode/crm/workbench/excel/activityList.xls");
+        byte[] buff = new byte[256];
+        int len = 0;
+        while ((len = in.read(buff)) != -1) {
+            out.write(buff);
+        }
+        in.close();*/
+
+        workbook.write(out);
+
+        workbook.close();
+        out.close();
+    }
+
+
+    /**
+     *  配置springmvc的文件上传解析器
+     * @param userName
+     * @param myFile
+     * @return
+     */
+    @RequestMapping("/workbench/activity/fileUpload.do")
+    @ResponseBody
+    public Object fillUpload(String userName, MultipartFile myFile) throws IOException {
+        // 把文本数据打印到控制台
+        System.out.println("userName" + userName);
+        // 把文件在服务器指定的目录中生成一个同样的文件
+        // 路径 必须手动创建好  文件如果不存在会自动创建
+        File file = new File("C:/programme/java/实战项目/CRM-SSM/crm-project/crm/src/main/java/com/bjpowernode/crm/workbench/excel/aaa." + myFile.getOriginalFilename());
+        myFile.transferTo(file);
+        // 返回响应信息
+        ReturnObject returnObject = new ReturnObject();
+        returnObject.setCode(Contants.RETURN_OBJECT_CODE_SUCCESS);
+        returnObject.setMessage("上传成功");
+        return returnObject;
+    }
+
+
+    @RequestMapping("/workbench/activity/importActivity.do")
+    @ResponseBody
+    public Object importActivity(MultipartFile activityFile, HttpSession session, String userName) {
+        System.out.println("userName = " + userName);
+        User user = (User) session.getAttribute(Contants.SESSION_USER);
+        ReturnObject returnObject = new ReturnObject();
+        try {
+            /*// 把excel文件写到磁盘目录中
+            String originalFilename = activityFile.getOriginalFilename();
+            File file = new File("C:/programme/java/实战项目/CRM-SSM/crm-project/crm/src/main/java/com/bjpowernode/crm/workbench/excel2/", originalFilename); // 路径必须手动创建好，文件如果不存在，会自动创建
+            activityFile.transferTo(file);
+
+            // 解析excel文件，获取文件中的数据，并且封装成activityList
+            // 根据excel文件生成HSSFWorkbook对象，封装了excel文件的所有信息
+            InputStream in = new FileInputStream("C:/programme/java/实战项目/CRM-SSM/crm-project/crm/src/main/java/com/bjpowernode/crm/workbench/excel2/" + originalFilename);*/
+
+            InputStream in = activityFile.getInputStream();
+
+            HSSFWorkbook workbook = new HSSFWorkbook(in);
+            // 根据wb获取HSSFSheet对象，封装了一页的所有信息
+            HSSFSheet sheet = workbook.getSheetAt(0);   // 页的下标，下标从0开始，依次增加
+            // 根据sheet获取HSSFRow对象，封装了一行的所有信息
+            HSSFRow row = null;
+            HSSFCell cell = null;
+            Activity activity = null;
+            List<Activity> activityList = new ArrayList<Activity>();
+            for(int i = 1 ; i <= sheet.getLastRowNum() ; i++) { // sheet.getLastRowNum()：最后一行的下标
+                row = sheet.getRow(i);// 行的下标，下标从0开始，依次增加
+                activity = new Activity();
+                activity.setId(UUIDUtils.getUUID());
+                activity.setOwner(user.getId());
+                activity.setCreateTime(DateUtils.formatDate(new Date()));
+                activity.setCreateBy(user.getId());
+
+                for(int j = 0 ; j < row.getLastCellNum() ; j++) { // row.getLastCellNum():最后一列的下标+1
+                    // 根据row获取HSSFCell对象，封装了一列的所有信息
+                    cell = row.getCell(j); // 列的下标，下标从0开始，依次增加
+
+                    // 获取列中的数据
+                    String cellValue = HSSFUtils.getCellValueForStr(cell);
+                    if(j == 2) {
+                         activity.setName(cellValue);
+                    } else if(j == 3) {
+                         activity.setStartDate(cellValue);
+                    } else if(j == 4) {
+                        activity.setEndDate(cellValue);
+                    } else if (j == 5) {
+                        activity.setCost(cellValue);
+                    } else if (j == 6) {
+                        activity.setDescription(cellValue);
+                    }
+                }
+
+                // 每一行中所有列都封装完成之后，把activity保存到list中
+                activityList.add(activity);
+            }
+            // 调用service层方法，保存市场活动
+            int ret = activityService.saveCreateActivityByList(activityList);
+            returnObject.setCode(Contants.RETURN_OBJECT_CODE_SUCCESS);
+            returnObject.setRetData(ret);
+        }catch (Exception e){
+            e.printStackTrace();
+            returnObject.setCode(Contants.RETURN_OBJECT_CODE_FAIL);
+            returnObject.setMessage("系统繁忙，请稍后重试......");
+        }
+
+        return returnObject;
+    }
+
 }
