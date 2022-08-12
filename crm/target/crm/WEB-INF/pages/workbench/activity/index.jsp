@@ -113,6 +113,156 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 			queryActivityByConditionForPage(1, $("#demo_pag1").bs_pagination("getOption", "rowsPerPage"));
 		});
 
+		// 给全选按钮绑定事件
+		$("#chckAll").click(function () {
+			if (this.checked == true) {
+				$("#tBody input[type='checkbox']").prop("checked", true);
+			} else {
+				$("#tBody input[type='checkbox']").prop("checked", false);
+			}
+		});
+
+		// 这种方法无发给 非固有元素 绑定事件
+		/*$("#tBody input[type='checkbox']").click(function () {
+			if ($("#tBody input[type='checkbox']").size() == $("#tBody input[type='checkbox']:checked").size()) {
+				$("#chckAll").prop("checked", true);
+			} else {
+				$("#chckAll").prop("checked", false);
+			}
+		});*/
+
+		$("#tBody").on("click", "input", function () {
+			if ($("#tBody input[type='checkbox']").size() == $("#tBody input[type='checkbox']:checked").size()) {
+				$("#chckAll").prop("checked", true);
+			} else {
+				$("#chckAll").prop("checked", false);
+			}
+		});
+
+		// 给删除按钮绑定事单击事件
+		$("#deleteActivityBtn").click(function () {
+			// 收集参数
+			var checkedIds = $("#tBody input[type='checkbox']:checked");
+			if (checkedIds.size() == 0) {
+				alert("请选择要删除的市场活动");
+				return;
+			}
+			if (window.confirm("确定删除吗?")) {
+				var ids = "";
+				$.each(checkedIds, function () {
+					ids += "id=" + this.value + "&";
+				});
+				ids = ids.substr(0, ids.length-1);
+				$.ajax({
+					url: "workbench/activity/deleteActivityIds.do",
+					data: ids,
+					type: 'post',
+					dataType: 'json',
+					success: function (data) {
+						if (data.code == "1") {
+							queryActivityByConditionForPage($("#demo_pag1").bs_pagination("getOption", "currentPage"), $("#demo_pag1").bs_pagination("getOption", "rowsPerPage"));
+						} else {
+							alert(data.message);
+						}
+					}
+
+				});
+			}
+
+		});
+
+		$("#editActivityBtn").click(function () {
+			// 收集id
+			var checkIds = $("#tBody input[type='checkbox']:checked");
+			if (checkIds.size() == 0) {
+				alert("请选择要修改的市场活动");
+				return;
+			}
+			if (checkIds.size() > 1) {
+				alert("一次只能修改一条市场活动哦");
+				return;
+			}
+			// var id = checkIds.val();
+			// var id = checkIds.get(0).value;
+			var id = checkIds[0].value;
+			$.ajax({
+				url: 'workbench/activity/queryActivityById.do',
+				data: {
+					id: id
+				},
+				type: 'post',
+				dataType: 'json',
+				success:function (data) {
+					$("#edit-id").val(data.id);
+					$("#edit-marketActivityOwner").val(data.owner);
+					$("#edit-marketActivityName").val(data.name);
+					$("#edit-startTime").val(data.startDate);
+					$("#edit-endTime").val(data.endDate);
+					$("#edit-cost").val(data.cost);
+					$("#edit-description").val(data.description);
+					// 弹出模态窗口
+					$("#editActivityModal").modal("show");
+				}
+			});
+		});
+
+		// 给更新按钮添加单击事件
+		$("#saveEditActivityBtn").click(function () {
+			var id = $("#edit-id").val();
+			var owner = $("#edit-marketActivityOwner").val();
+			var name = $("#edit-marketActivityName").val();
+			var startDate = $("#edit-startTime").val();
+			var endDate = $("#edit-endTime").val();
+			var cost = $("#edit-cost").val();
+			var description = $("#edit-description").val();
+			// 表单验证
+			if(owner == "" || owner==null) {
+				alert("所有者不能为空");
+				return;
+			}
+			if(name == "") {
+				alert("名称不能为空");
+				return;
+			}
+			if (startDate != null && endDate != null) {
+				if (endDate < startDate) {
+					alert("结束日期不能比开始日期小");
+					return;
+				}
+			}
+			/*
+			    正则表达式 :  ^(([1-9]\d*)|0)$ 非负整数
+			 */
+			var regExp = /^(([1-9]\d*)|0)$/;
+			if (!regExp.test(cost)) {
+				alert("成本只能为非负整数");
+				return;
+			}
+			$.ajax({
+				url: 'workbench/activity/saveEditActivity.do',
+				data: {
+					id: id,
+					owner: owner,
+					name: name,
+					startDate: startDate,
+					endDate: endDate,
+					cost: cost,
+					description: description
+				},
+				type: 'post',
+				dataType: 'json',
+				success: function (data) {
+					if (data.code == '1') {
+						$("#editActivityModal").modal("hide");
+						queryActivityByConditionForPage($("#demo_pag1").bs_pagination("getOption", "currentPage"), $("#demo_pag1").bs_pagination("getOption", "rowsPerPage"));
+					} else {
+						alert(data.message);
+						$("#editActivityModal").modal("show");
+					}
+				}
+			});
+		});
+
 	});
 
 	function queryActivityByConditionForPage (pageNo, pageSize) {
@@ -150,6 +300,9 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 					htmlStr += '</tr>';
 				});
 				$("#tBody").html(htmlStr);
+
+				// 取消全选按钮
+				$("#chckAll").prop("checked", false);
 
 				// 计算总页数
 				var totalPages = 1;
@@ -270,6 +423,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 				<div class="modal-body">
 				
 					<form class="form-horizontal" role="form">
+						<input type="hidden" id="edit-id">
 					
 						<div class="form-group">
 							<label for="edit-marketActivityOwner" class="col-sm-2 control-label">所有者<span style="font-size: 15px; color: red;">*</span></label>
@@ -311,7 +465,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 						<div class="form-group">
 							<label for="edit-describe" class="col-sm-2 control-label">描述</label>
 							<div class="col-sm-10" style="width: 81%;">
-								<textarea class="form-control" rows="3" id="edit-describe">市场活动Marketing，是指品牌主办或参与的展览会议与公关市场活动，包括自行主办的各类研讨会、客户交流会、演示会、新产品发布会、体验会、答谢会、年会和出席参加并布展或演讲的展览会、研讨会、行业交流会、颁奖典礼等</textarea>
+								<textarea class="form-control" rows="3" id="edit-description">市场活动Marketing，是指品牌主办或参与的展览会议与公关市场活动，包括自行主办的各类研讨会、客户交流会、演示会、新产品发布会、体验会、答谢会、年会和出席参加并布展或演讲的展览会、研讨会、行业交流会、颁奖典礼等</textarea>
 							</div>
 						</div>
 						
@@ -320,7 +474,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-					<button type="button" class="btn btn-primary" data-dismiss="modal">更新</button>
+					<button type="button" class="btn btn-primary" id="saveEditActivityBtn">更新</button>
 				</div>
 			</div>
 		</div>
@@ -413,8 +567,8 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 			<div class="btn-toolbar" role="toolbar" style="background-color: #F7F7F7; height: 50px; position: relative;top: 5px;">
 				<div class="btn-group" style="position: relative; top: 18%;">
 				  <button type="button" class="btn btn-primary" id="createActivityBtn"><span class="glyphicon glyphicon-plus"></span> 创建</button>
-				  <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal"><span class="glyphicon glyphicon-pencil"></span> 修改</button>
-				  <button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span> 删除</button>
+				  <button type="button" class="btn btn-default" id="editActivityBtn"><span class="glyphicon glyphicon-pencil"></span> 修改</button>
+				  <button type="button" class="btn btn-danger" id="deleteActivityBtn"><span class="glyphicon glyphicon-minus"></span> 删除</button>
 				</div>
 				<div class="btn-group" style="position: relative; top: 18%;">
                     <button type="button" class="btn btn-default" data-toggle="modal" data-target="#importActivityModal" ><span class="glyphicon glyphicon-import"></span> 上传列表数据（导入）</button>
@@ -426,7 +580,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 				<table class="table table-hover">
 					<thead>
 						<tr style="color: #B3B3B3;">
-							<td><input type="checkbox" /></td>
+							<td><input type="checkbox" id="chckAll" /></td>
 							<td>名称</td>
                             <td>所有者</td>
 							<td>开始日期</td>
