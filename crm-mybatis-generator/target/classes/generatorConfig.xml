@@ -70,6 +70,33 @@
             <property name="enableSubPackages" value="true"/>
         </javaClientGenerator>
 
+
+
+        <!--<table tableName="tbl_clue_remark" domainObjectName="ClueRemark"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>-->
+
+        <!--<table tableName="tbl_clue" domainObjectName="Clue"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>-->
+
+        <!--<table tableName="tbl_dic_type" domainObjectName="DicType"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>
+
+
+        <table tableName="tbl_dic_value" domainObjectName="DicValue"
+               enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false"
+               selectByExampleQueryId="false">
+        </table>-->
+
         <!--<table tableName="tbl_activity" domainObjectName="Activity"
                enableCountByExample="false" enableUpdateByExample="false"
                enableDeleteByExample="false" enableSelectByExample="false"
