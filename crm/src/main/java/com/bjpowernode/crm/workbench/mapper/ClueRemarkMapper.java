@@ -54,9 +54,24 @@ public interface ClueRemarkMapper {
     int updateByPrimaryKey(ClueRemark record);
 
     /**
-     * 根据线索id查询线索所有备注信息
+     * 根据线索clueId查询线索所有备注信息
      * @param clueId
      * @return
      */
     List<ClueRemark> selectClueRemarkForDetailByClueId(String clueId);
+
+    /**
+     * 根据clueId查询线索所有备注信息
+     * @param clueId
+     * @return
+     */
+    List<ClueRemark> selectClueRemarkByClueId(String clueId);
+
+
+    /**
+     * 根据clueId删除交易备注信息
+     * @param clueId
+     * @return
+     */
+    int deleteClueRemarkByClueId(String clueId);
 }
