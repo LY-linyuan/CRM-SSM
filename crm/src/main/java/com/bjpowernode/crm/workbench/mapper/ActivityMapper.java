@@ -123,4 +123,20 @@ public interface ActivityMapper {
      * @return
      */
     List<Activity> selectActivityForDetailByClueId(String clueId);
+
+    /**
+     * 根基name模糊查询市场活动兵器吧已经跟clueId关联过的而市场活动排除
+     * @param map
+     * @return
+     */
+    List<Activity> selectActivityForDetailByNameClueId(Map<String, Object> map);
+
+
+    /**
+     * 根据ids查询市场活动明细信息
+     * @param ids
+     * @return
+     */
+    List<Activity> selectActivityForDetailByIds(String[] ids);
+
 }
