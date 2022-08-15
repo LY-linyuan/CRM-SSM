@@ -182,16 +182,4 @@
        on cr.edit_by=u2.id
     where cr.clue_id=#{clueId}
   </select>
-
-  <select id="selectClueRemarkByClueId" parameterType="String" resultMap="BaseResultMap" >
-    select <include refid="Base_Column_List"></include>
-    from tbl_clue_remark
-    where clue_id=#{clueId}
-  </select>
-
-
-  <delete id="deleteClueRemarkByClueId" parameterType="String" >
-    delete from tbl_clue_remark
-    where clue_id=#{clueId}
-  </delete>
 </mapper>

@@ -139,12 +139,4 @@ public interface ActivityMapper {
      */
     List<Activity> selectActivityForDetailByIds(String[] ids);
 
-
-    /**
-     * 根据名字模糊查询市场活动并且跟clueId关联过的市场活动
-     * @param map
-     * @return
-     */
-    List<Activity> selectActivityForConvertByNameClueId(Map<String, Object> map);
-
 }

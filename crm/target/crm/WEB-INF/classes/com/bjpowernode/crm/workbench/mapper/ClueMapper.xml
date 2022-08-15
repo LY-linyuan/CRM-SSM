@@ -390,16 +390,4 @@
                on c.edit_by=u3.id
     where c.id=#{id}
   </select>
-
-
-    <select id="selectClueById" parameterType="String" resultMap="BaseResultMap" >
-        select <include refid="Base_Column_List"></include>
-        from tbl_clue
-        where id=#{id}
-    </select>
-
-    <delete id="deleteClueById" parameterType="String" >
-        delete from tbl_clue
-        where id=#{id}
-    </delete>
 </mapper>
